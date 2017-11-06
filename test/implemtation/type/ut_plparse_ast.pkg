@@ -1,0 +1,38 @@
+CREATE OR REPLACE PACKAGE ut_plparse_ast AS
+
+    Description CONSTANT pete_types.typ_description := 'plparse_AST';
+
+    PROCEDURE before_each;
+
+    PROCEDURE toStringStrings(D VARCHAR2 := 'toString correctly appends children toStrings');
+
+END;
+/
+CREATE OR REPLACE PACKAGE BODY ut_plparse_ast AS
+
+    ----------------------------------------------------------------------------
+    PROCEDURE before_each IS
+    BEGIN
+        plparse_ast_registry.initialize;
+    END;
+
+    ----------------------------------------------------------------------------
+    PROCEDURE toStringStrings(D VARCHAR2) IS
+      l_ast plparse_ast;
+      l_child1 plparse_ast;
+      l_child2 plparse_ast;
+    BEGIN
+      pete.set_method_description(d);
+      --
+      l_ast := plparse_ast.createNew(plex_token(plex.tk_Asterix));
+      l_child1 := plparse_ast.createNew(plex_token(plex.tk_Asterix));
+      l_child2 := plparse_ast.createNew(plex_token(plex.tk_Asterix));
+      l_ast.addChild(l_child1);
+      l_ast.addChild(l_child2);
+      --
+      pete_assert.eq('*(*,*)', l_ast.toString);
+      --
+    END;
+
+END;
+/

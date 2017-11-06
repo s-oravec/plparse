@@ -1,0 +1,14 @@
+{
+  "name": "plparse",
+  "version": "0.1.0",
+  "description": "PL/SQL Language Parser",
+  "author" : "Štefan Oravec <stefan.oravec@me.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/s-oravec/plparse.git"
+  },
+  "keywords": [
+    "PL/SQL", "Parser", "Language", "AST", "Abstract-Syntax-Tree", "Oracle"
+  ]
+}
