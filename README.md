@@ -1,84 +1,6 @@
-# plex
+# plparse
 
-PL/SQL Lexer - far from 100% bulletproof, but good enoug for me.
-
-1. plex.initialize
-1. plex.next_token
-1. plex.next_token
-1. ...
-
-or 
-
-1. plex.intialize
-1. plex.tokens
-
-## `plex.initialize`
-
-Initialize Lexer with `source_lines`
-
-**Parameters**
-
-- `source_lines` - source lines of stored procedure (package, function, ...)
-
-## `plex.next_token`
-
-Get next token and then next ...
-
-**Return**
-
-- `plex_token` - single token
-
-## `plex.tokens`
-
-Get all tokens
-
-**Returns**
-
-- `plex_tokesn` - table of `plex_token`
-
-## Package scripts
-
-Connect as DBA or privileged user (`SYS` is the best) and
-
-### create
-
-Create schema for **plex** as configured in `package.sql`
-
-```
-SQL> @create configured <environment>
-```
-
-Or create in interactive mode 
-
-```
-SQL> @create manual <environment>
-```
-
-**Choose from &gt;environment&lt; values**
-
-- `development` - for development of **plex** package - schema receives more privileges
-- `production`  - if you just want to use **plex**
-
-### grant
-
-Or you may wish to install plex in already existing schema. Then use the `grant.sql` script to grant privileges required by **plex** package.
-Pass **environment** parameter to grant `development` or `production` privileges.
-
-```
-SQL> @grant <packageSchema> <environment>
-```
-
-### drop
-
-Again either configured or manual. **And it drops cascade. So be carefull. You have been warned**
-
-```
-SQL> @drop configured
-```
-or
-```
-SQL> @drop manual
-```
+PL/SQL Parser - only toplevel AST node types, but good enoug for me.
 
 ## Install scripts
 
@@ -116,13 +38,13 @@ Drops all objects created by install.
 SQL> @uninstall
 ```
 
-## Use plex from different schemas
+## Use plparse from different schemas
 
-When you want to use **plex** from other schemas, you have basically 2 options
+When you want to use **plparse** from other schemas, you have basically 2 options
 - either reference objects granted to `PUBLIC` with qualified name (`<schema>.<object>`)
-- or create synonyms and simplify everything (upgrades, move to other schema, use other plex package, ...)
+- or create synonyms and simplify everything (upgrades, move to other schema, use other plparse package, ...)
 
-These scripts will help you with latter, by either creating or dropping synonyms for **plex** package API in that schema.
+These scripts will help you with latter, by either creating or dropping synonyms for **plparse** package API in that schema.
 
 ### set_dependency_ref_owner
 
@@ -130,7 +52,7 @@ Creates depenency from reference owner.
 
 ```
 SQL> conn <some_schema>
-SQL> @set_dependency_ref_owner  <schema_where_plex_is_installed>
+SQL> @set_dependency_ref_owner  <schema_where_plparse_is_installed>
 ```
 
 ### unset_dependency_ref_owner
@@ -139,5 +61,5 @@ Removes depenency from reference owner.
 
 ```
 SQL> conn <some_schema>
-SQL> @unset_dependency_ref_owner  <schema_where_plex_is_installed>
+SQL> @unset_dependency_ref_owner  <schema_where_plparse_is_installed>
 ```
