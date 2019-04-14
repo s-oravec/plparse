@@ -46,20 +46,20 @@ When you want to use **plparse** from other schemas, you have basically 2 option
 
 These scripts will help you with latter, by either creating or dropping synonyms for **plparse** package API in that schema.
 
-### set_dependency_ref_owner
+### create_synonyms
 
 Creates depenency from reference owner.
 
 ```
 SQL> conn <some_schema>
-SQL> @set_dependency_ref_owner  <schema_where_plparse_is_installed>
+SQL> @create_synonyms  <schema_where_plparse_is_installed>
 ```
 
-### unset_dependency_ref_owner
+### drop_synonyms
 
 Removes depenency from reference owner.
 
 ```
 SQL> conn <some_schema>
-SQL> @unset_dependency_ref_owner  <schema_where_plparse_is_installed>
+SQL> @drop_synonyms  <schema_where_plparse_is_installed>
 ```
