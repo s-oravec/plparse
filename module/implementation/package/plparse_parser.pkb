@@ -450,6 +450,39 @@ CREATE OR REPLACE PACKAGE BODY plparse_parser AS
     END;
 
     ----------------------------------------------------------------------------
+    function unknownStatement return plparse_ast is
+        l_sourceLine_start pls_integer;
+        l_sourceLineIndex_start pls_integer;
+        l_sourceLine_end pls_integer;
+        l_sourceLineIndex_end pls_integer;
+        l_currentToken plex_token;
+    begin
+        if currentTokenType() != plex.tk_EOF
+        then
+            -- just consume tokens until ;
+            l_currentToken := plparse_token_stream.currentToken;
+            l_sourceLine_start := l_currentToken.sourceLine;
+            l_sourceLineIndex_start := l_currentToken.sourceLineIndex;
+            loop
+                l_currentToken := plparse_token_stream.take;
+                l_sourceLine_end := l_currentToken.sourceLine;
+                l_sourceLineIndex_end := l_currentToken.sourceLineIndex + length(l_currentToken.text);
+                if l_currentToken.tokenType = plex.tk_Semicolon
+                then
+                    return plparse_ast.createNew(symbol_type => plparse.ast_UnknownStatement,
+                                                 sourceLine_start => l_sourceLine_start,
+                                                 sourceLineIndex_start => l_sourceLineIndex_start,
+                                                 sourceLine_end => l_sourceLine_end,
+                                                 sourceLineIndex_end => l_sourceLineIndex_end);
+                elsif l_currentToken.tokenType = plex.tk_EOF
+                then
+                    raiseUnexpectedToken;
+                end if;
+            end loop;
+        end if;
+    end;
+
+    ----------------------------------------------------------------------------
     FUNCTION decision(decisionToken IN plex_token) RETURN plparse_AST_Decision IS
         l_branches plparse_AstChildren;
     BEGIN
@@ -506,7 +539,7 @@ CREATE OR REPLACE PACKAGE BODY plparse_parser AS
                 -- goto, raise, pipe, continue
                 appendToList(simpleStatement(), l_Result);
             ELSE
-                plparse_token_stream.consume;
+                appendToList(unknownStatement(), l_Result);
             END IF;
         END LOOP;
         RETURN l_Result;

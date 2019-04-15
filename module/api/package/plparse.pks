@@ -30,6 +30,7 @@ create or replace package plparse as
     ast_ProcedureDef    constant ast_symbol_type := 'ProcedureDef';
     ast_ProcedureDecl   constant ast_symbol_type := 'ProcedureDecl';
     ast_SimpleStatement constant ast_symbol_type := 'SimpleStatement';
+    ast_UnknownStatement constant ast_symbol_type := 'UnknownStatement';
 
     /**
     Initializes parser with source lines
