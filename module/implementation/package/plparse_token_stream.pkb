@@ -141,7 +141,8 @@ CREATE OR REPLACE PACKAGE BODY plparse_token_stream AS
             RETURN l_current;
         END IF;
         -- TODO: rewrite without exception
-        raise_application_error(-20000, 'Invalid syntax. Expecting ' || tokenType || ' but got ' || currentToken().tokenType);
+        raise_application_error(-20000, 'Invalid syntax. Expecting ' || tokenType || ' but got ' || currentToken().tokenType ||
+                                        ' at ' || currentToken().sourceLine || ':' || currentToken().sourceLineIndex);
     END;
 
     ----------------------------------------------------------------------------
