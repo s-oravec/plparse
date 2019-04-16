@@ -59,22 +59,22 @@ exec dbms_output.enable;
 set termout on
 set serveroutput on size unlimited
 
---prompt utPLSQL test reported as JUnit
---spool report/test-report-core.xml
---begin
---    ut.run(ut_junit_reporter());
---end;
---/
---spool off
+prompt utPLSQL test reported as JUnit
+spool report/test-report-core.xml
+begin
+    ut.run(ut_junit_reporter());
+end;
+/
+spool off
 
---prompt done
+prompt done
 
---prompt Code Coverage Report
---spool report/coverage-report-core.html
---begin
---    ut.run(ut_coverage_html_reporter());
---end;
---/
---spool off
+prompt Code Coverage Report
+spool report/coverage-report-core.html
+begin
+    ut.run(ut_coverage_html_reporter());
+end;
+/
+spool off
 
 select * from table(ut.run());
