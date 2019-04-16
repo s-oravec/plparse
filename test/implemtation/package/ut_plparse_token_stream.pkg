@@ -1,131 +1,129 @@
 CREATE OR REPLACE PACKAGE ut_plparse_token_stream AS
+    
+    --%suitepath(plparse)
+    --%suite(plparse_token_stream)
 
-    Description CONSTANT pete_types.typ_description := 'plparse_token_stream';
+    --%test(initialize works with empty)
+    PROCEDURE initializeWorksWithEmpty;
+    
+    --%test(initialize works with non empty)
+    PROCEDURE initializeWorksWithNonEmpty;
 
-    PROCEDURE initializeWorksWithEmpty(D VARCHAR2 := 'initialize works with empty');
-    PROCEDURE initializeWorksWithNonEmpty(D VARCHAR2 := 'initialize works with non empty');
+    --%test(currentItem and consume works)
+    PROCEDURE currentAndConsumeItemWorks;
 
-    PROCEDURE currentAndConsumeItemWorks(D VARCHAR2 := 'currentItem and consume works');
-
-    PROCEDURE rlbckWOSnapshotThrows(D VARCHAR2 := 'rollback without takeSnapshot throws');
-    PROCEDURE commitWOSnapshotThrows(D VARCHAR2 := 'commit without takeSnapshot throws');
-    PROCEDURE commitAfterSnapWorks(D VARCHAR2 := 'commit after takeSnapshot works');
-    PROCEDURE rollbackAfterSnapWorks(D VARCHAR2 := 'rollback after takeSnapshot works');
+    --%test(rollback without takeSnapshot throws)
+    --%throws(-20000)
+    PROCEDURE rlbckWOSnapshotThrows;
+    
+    --%test(commit without takeSnapshot throws)
+    --%throws(-20000)
+    PROCEDURE commitWOSnapshotThrows;
+    
+    --%test(commit after takeSnapshot works)
+    --%throws(-20000)
+    PROCEDURE commitAfterSnapWorks;
+    
+    --%test(rollback after takeSnapshot works)
+    --%throws(-20000)
+    PROCEDURE rollbackAfterSnapWorks;
 
 END;
 /
 CREATE OR REPLACE PACKAGE BODY ut_plparse_token_stream AS
 
     ----------------------------------------------------------------------------
-    PROCEDURE initializeWorksWithEmpty(D VARCHAR2) IS
+    PROCEDURE initializeWorksWithEmpty IS
         l_sourceLines plparse.source_lines_type := plparse.source_lines_type();
+        l_pom         integer;
     BEGIN
-        pete.set_method_description(D);
-        -- prepare
+        -- Test
         plparse_token_stream.initialize(p_source_lines => l_sourceLines);
         --
-        pete_assert.eq(plex.tk_EOF, plparse_token_stream.currentToken().tokenType);
-        pete_assert.eq(1, plparse_token_stream.getIndex);
-        pete_assert.this(plparse_token_stream.eof);
-        pete_assert.this(plparse_token_stream.peek(1) IS NULL);
+        -- Expectations
+        ut.expect(plparse_token_stream.currentToken().tokenType).to_equal(plex.tk_EOF);
+        ut.expect(plparse_token_stream.getIndex).to_equal(1);
+        ut.expect(plparse_token_stream.eof,'EOF is what has left').to_be_true();
+        l_pom := case when plparse_token_stream.peek(1) is null then null else 1 end;
+        ut.expect(l_pom).to_be_null();
     END;
 
     ----------------------------------------------------------------------------
-    PROCEDURE initializeWorksWithNonEmpty(D VARCHAR2) IS
+    PROCEDURE initializeWorksWithNonEmpty IS
         l_sourceLines plparse.source_lines_type := plparse.source_lines_type('begin' || chr(10), 'end');
     BEGIN
-        pete.set_method_description(D);
-        -- prepare
+        -- Test
         plparse_token_stream.initialize(p_source_lines => l_sourceLines);
         --
-        pete_assert.eq(plex.tk_BEGIN, plparse_token_stream.currentToken().tokenType);
-        pete_assert.eq(plex.tk_End, plparse_token_stream.peek(1).tokenType);
-        pete_assert.eq(plex.tk_EOF, plparse_token_stream.peek(2).tokenType);
+        -- Expectations
+        ut.expect(plparse_token_stream.currentToken().tokenType).to_equal(plex.tk_BEGIN);
+        ut.expect(plparse_token_stream.peek(1).tokenType).to_equal(plex.tk_End);
+        ut.expect(plparse_token_stream.peek(2).tokenType).to_equal(plex.tk_EOF);
     END;
 
     ----------------------------------------------------------------------------
-    PROCEDURE currentAndConsumeItemWorks(D VARCHAR2) IS
+    PROCEDURE currentAndConsumeItemWorks IS
         l_sourceLines plparse.source_lines_type := plparse.source_lines_type('begin' || chr(10), 'end');
     BEGIN
-        pete.set_method_description(D);
+        -- Test
         -- prepare
         plparse_token_stream.initialize(p_source_lines => l_sourceLines);
         --
-        pete_assert.eq(plex.tk_BEGIN, plparse_token_stream.currentToken().tokenType);
-        pete_assert.eq(1, plparse_token_stream.getIndex);
+        -- Expectations
+        ut.expect(plparse_token_stream.currentToken().tokenType).to_equal(plex.tk_BEGIN);
+        ut.expect(plparse_token_stream.getIndex).to_equal(1);
+        --
+        -- Continue Test
         plparse_token_stream.consume;
-        pete_assert.eq(2, plparse_token_stream.getIndex);
-        pete_assert.eq(plex.tk_End, plparse_token_stream.currentToken().tokenType);
+        --
+        -- Expectations
+        ut.expect(plparse_token_stream.currentToken().tokenType).to_equal(plex.tk_End);
+        ut.expect(plparse_token_stream.getIndex).to_equal(2);
     END;
 
     ----------------------------------------------------------------------------
-    PROCEDURE rlbckWOSnapshotThrows(D VARCHAR2) IS
-        l_thrown      BOOLEAN := FALSE;
+    PROCEDURE rlbckWOSnapshotThrows IS
         l_sourceLines plparse.source_lines_type := plparse.source_lines_type('begin' || chr(10), 'end');
     BEGIN
-        pete.set_method_description(D);
-        -- prepare
+        -- Prepare
         plparse_token_stream.initialize(p_source_lines => l_sourceLines);
-        --
-        BEGIN
-            plparse_token_stream.rollbackSnapshot;
-        EXCEPTION
-            WHEN OTHERS THEN
-                l_thrown := TRUE;
-        END;
-        --
-        pete_assert.this(l_thrown, 'plparse_token_stream.rollbackSnapshot should have thrown.');
+        -- Test
+        plparse_token_stream.rollbackSnapshot;
+        -- plparse_token_stream.rollbackSnapshot should have thrown.
     END;
 
     ----------------------------------------------------------------------------
-    PROCEDURE commitWOSnapshotThrows(D VARCHAR2) IS
-        l_thrown      BOOLEAN := FALSE;
+    PROCEDURE commitWOSnapshotThrows IS
         l_sourceLines plparse.source_lines_type := plparse.source_lines_type('begin' || chr(10), 'end');
     BEGIN
-        pete.set_method_description(D);
-        -- prepare
+        -- Prepare
         plparse_token_stream.initialize(p_source_lines => l_sourceLines);
-        --
-        BEGIN
-            plparse_token_stream.commitSnapshot;
-        EXCEPTION
-            WHEN OTHERS THEN
-                l_thrown := TRUE;
-        END;
-        --
-        pete_assert.this(l_thrown, 'plparse_token_stream.commitSnapshot should have thrown.');
+        -- Test
+        plparse_token_stream.commitSnapshot;
+        -- plparse_token_stream.commitSnapshot should have thrown.
     END;
 
     ----------------------------------------------------------------------------
-    PROCEDURE commitAfterSnapWorks(D VARCHAR2) IS
-        l_thrown      BOOLEAN := FALSE;
+    PROCEDURE commitAfterSnapWorks IS
         l_sourceLines plparse.source_lines_type := plparse.source_lines_type('begin' || chr(10), 'end');
     BEGIN
-        pete.set_method_description(D);
-        -- prepare
+        -- Prepare
         plparse_token_stream.initialize(p_source_lines => l_sourceLines);
         --
         plparse_token_stream.takeSnapshot;
         plparse_token_stream.consume;
         plparse_token_stream.commitSnapshot;
-        -- consecutive rollback throws as stack is empty
-        BEGIN
-            plparse_token_stream.rollbackSnapshot;
-        EXCEPTION
-            WHEN OTHERS THEN
-                l_thrown := TRUE;
-        END;
-        --
-        pete_assert.this(l_thrown, 'plparse_token_stream.rollbackSnapshot should have thrown.');
+        -- Test
+        plparse_token_stream.rollbackSnapshot;
+        -- plparse_token_stream.rollbackSnapshot should have thrown.
     END;
 
     ----------------------------------------------------------------------------
-    PROCEDURE rollbackAfterSnapWorks(D VARCHAR2) IS
-        l_thrown      BOOLEAN := FALSE;
+    PROCEDURE rollbackAfterSnapWorks IS
         l_indexBefore PLS_INTEGER;
         l_sourceLines plparse.source_lines_type := plparse.source_lines_type('begin' || chr(10), 'end');
     BEGIN
-        pete.set_method_description(D);
+        -- Test
         -- prepare
         plparse_token_stream.initialize(p_source_lines => l_sourceLines);
         --
@@ -134,16 +132,12 @@ CREATE OR REPLACE PACKAGE BODY ut_plparse_token_stream AS
         plparse_token_stream.consume;
         plparse_token_stream.rollbackSnapshot;
         -- indexe is restored to before take snapshot
-        pete_assert.eq(l_indexBefore, plparse_token_stream.getIndex);
-        -- consecutive rollback throws as stack is empty
-        BEGIN
-            plparse_token_stream.commitSnapshot;
-        EXCEPTION
-            WHEN OTHERS THEN
-                l_thrown := TRUE;
-        END;
         --
-        pete_assert.this(l_thrown, 'plparse_token_stream.commitSnapshot should have thrown.');
+        -- Expectations
+        ut.expect(plparse_token_stream.getIndex).to_equal(l_indexBefore);
+        -- consecutive rollback throws as stack is empty
+        plparse_token_stream.commitSnapshot;
+        -- plparse_token_stream.commitSnapshot should have thrown.
     END;
 
 END;

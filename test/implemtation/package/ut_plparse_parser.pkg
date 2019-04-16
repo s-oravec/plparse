@@ -1,22 +1,43 @@
 CREATE OR REPLACE PACKAGE ut_plparse_parser AS
+    
+    --%suitepath(plparse)
+    --%suite(plparse_Parser)
 
-    Description CONSTANT pete_types.typ_description := 'plparse_Parser';
+    --%test(Empty package body works)
+    PROCEDURE pkgBodyEmpty;
+    
+    --%test(Package body with cursor declaration works)
+    PROCEDURE pkgBodyCursor;
+    
+    --%test(Package body with procedure definition without params works)
+    PROCEDURE pkgBodyProcWOParams;
+    
+    --%test(Package body with procedure definition with params works)
+    PROCEDURE pkgBodyProcWParams;
+    
+    --%test(Package body with procedure declaration and definition)
+    PROCEDURE pkgBodyProcDecl;
 
-    PROCEDURE pkgBodyEmpty(D VARCHAR2 := 'Empty package body works');
-    PROCEDURE pkgBodyCursor(D VARCHAR2 := 'Package body with cursor declaration works');
-    PROCEDURE pkgBodyProcWOParams(D VARCHAR2 := 'Package body with procedure definition without params works');
-    PROCEDURE pkgBodyProcWParams(D VARCHAR2 := 'Package body with procedure definition with params works');
-    PROCEDURE pkgBodyProcDecl(D VARCHAR2 := 'Package body with procedure declaration and definition');
+    --%test(Parses sample package)
+    PROCEDURE parseSamplePackageBody;
 
-    PROCEDURE parseSamplePackageBody(D VARCHAR2 := 'Parses sample package');
+    --%test(Function def without params)
+    PROCEDURE functionDef1;
+    
+    --%test(Function def with params)
+    PROCEDURE functionDef2;
 
-    PROCEDURE functionDef1(D VARCHAR2 := 'Function def without params');
-    PROCEDURE functionDef2(D VARCHAR2 := 'Function def with params');
-
-    PROCEDURE parseIfSample(D VARCHAR2 := 'Parses procedure with sample IF statements');
-    PROCEDURE parseDeclWithoutInitSample(D VARCHAR2 := 'Parses sample declarations without initialization');
-    PROCEDURE parseDeclWithInitSample(D VARCHAR2 := 'Parses sample declarations with initialization');
-    PROCEDURE parseCaseSample(D VARCHAR2 := 'Parses producedure with sample CASE statements');
+    --%test(Parses procedure with sample IF statements)
+    PROCEDURE parseIfSample;
+    
+    --%test(Parses sample declarations without initialization)
+    PROCEDURE parseDeclWithoutInitSample;
+    
+    --%test(Parses sample declarations with initialization)
+    PROCEDURE parseDeclWithInitSample;
+    
+    --%test(Parses producedure with sample CASE statements)
+    PROCEDURE parseCaseSample;
 
 END;
 /
@@ -45,7 +66,7 @@ CREATE OR REPLACE PACKAGE BODY ut_plparse_parser AS
     END;
 
     ---------------------------------------------------------------------------- 
-    PROCEDURE pkgBodyEmpty(D VARCHAR2) IS
+    PROCEDURE pkgBodyEmpty IS
         -- NoFormat Start
         l_sourceLines plparse.source_lines_type := plparse.source_lines_type(
             'package body pkgBodyEmpty as' || chr(10), 
@@ -54,14 +75,16 @@ CREATE OR REPLACE PACKAGE BODY ut_plparse_parser AS
         -- NoFormat End
         l_ast plparse_ast;
     BEGIN
-        pete.set_method_description(D);
+        -- Test
         plparse_parser.initialize(l_sourceLines);
         l_ast := plparse_parser.parse;
-        pete_assert.eq('PackageBody', l_ast.toString);
+        --
+        -- Expectations
+        ut.expect(l_ast.toString).to_equal('PackageBody');
     END;
 
     ---------------------------------------------------------------------------- 
-    PROCEDURE pkgBodyCursor(D VARCHAR2) IS
+    PROCEDURE pkgBodyCursor IS
         -- NoFormat Start
         l_sourceLines plparse.source_lines_type := plparse.source_lines_type(
             'package body pkgBodyCursor as' || chr(10), 
@@ -73,14 +96,16 @@ CREATE OR REPLACE PACKAGE BODY ut_plparse_parser AS
         -- NoFormat End
         l_ast plparse_ast;
     BEGIN
-        pete.set_method_description(D);
+        -- Test
         plparse_parser.initialize(l_sourceLines);
         l_ast := plparse_parser.parse;
-        pete_assert.eq('PackageBody(BlockDeclPart(OtherDecl))', l_ast.toString);
+        --
+        -- Expectations
+        ut.expect(l_ast.toString).to_equal('PackageBody(BlockDeclPart(OtherDecl))');
     END;
 
     ---------------------------------------------------------------------------- 
-    PROCEDURE pkgBodyProcWOParams(D VARCHAR2) IS
+    PROCEDURE pkgBodyProcWOParams IS
         -- NoFormat Start
         l_sourceLines plparse.source_lines_type := plparse.source_lines_type(
             'package body pkgBodyProcWOParams as' || chr(10), 
@@ -91,14 +116,16 @@ CREATE OR REPLACE PACKAGE BODY ut_plparse_parser AS
         -- NoFormat End
         l_ast plparse_ast;
     BEGIN
-        pete.set_method_description(D);
+        -- Test
         plparse_parser.initialize(l_sourceLines);
         l_ast := plparse_parser.parse;
-        pete_assert.eq('PackageBody(BlockDeclPart(ProcedureDef(BlockCode(SimpleStatement))))', l_ast.toString);
+        --
+        -- Expectations
+        ut.expect(l_ast.toString).to_equal('PackageBody(BlockDeclPart(ProcedureDef(BlockCode(SimpleStatement))))');
     END;
 
     ---------------------------------------------------------------------------- 
-    PROCEDURE pkgBodyProcWParams(D VARCHAR2) IS
+    PROCEDURE pkgBodyProcWParams IS
         -- NoFormat Start
         l_sourceLines plparse.source_lines_type := plparse.source_lines_type(
             'package body pkgBodyProcWParams as' || chr(10), 
@@ -118,14 +145,16 @@ CREATE OR REPLACE PACKAGE BODY ut_plparse_parser AS
         -- NoFormat End
         l_ast plparse_ast;
     BEGIN
-        pete.set_method_description(D);
+        -- Test
         plparse_parser.initialize(l_sourceLines);
         l_ast := plparse_parser.parse;
-        pete_assert.eq('PackageBody(BlockDeclPart(ProcedureDef(BlockCode(SimpleStatement))))', l_ast.toString);
+        --
+        -- Expectations
+        ut.expect(l_ast.toString).to_equal('PackageBody(BlockDeclPart(ProcedureDef(BlockCode(SimpleStatement))))');
     END;
 
     ---------------------------------------------------------------------------- 
-    PROCEDURE pkgBodyProcDecl(D VARCHAR2) IS
+    PROCEDURE pkgBodyProcDecl IS
         -- NoFormat Start
         l_sourceLines plparse.source_lines_type := plparse.source_lines_type(
             'package body pkgBodyProcWOParams as' || chr(10), 
@@ -139,26 +168,29 @@ CREATE OR REPLACE PACKAGE BODY ut_plparse_parser AS
         -- NoFormat End
         l_ast plparse_ast;
     BEGIN
-        pete.set_method_description(D);
+        -- Test
         plparse_parser.initialize(l_sourceLines);
         l_ast := plparse_parser.parse;
-        pete_assert.eq('PackageBody(BlockDeclPart(ProcedureDecl,ProcedureDef(BlockCode),ProcedureDef(BlockCode(SimpleStatement))))',
-                       l_ast.toString);
+        --
+        -- Expectations
+        ut.expect(l_ast.toString).to_equal('PackageBody(BlockDeclPart(ProcedureDecl,ProcedureDef(BlockCode(UnknownStatement)),ProcedureDef(BlockCode(SimpleStatement))))');
     END;
 
     ----------------------------------------------------------------------------
-    PROCEDURE parseSamplePackageBody(D VARCHAR2) IS
+    PROCEDURE parseSamplePackageBody IS
         l_ast plparse_ast;
     BEGIN
-        pete.set_method_description(D);
+        -- Test
         plparse_parser.initialize(get_source_lines(USER, 'FIX_PARSER_FNCANDPROC', 'PACKAGE BODY'));
         l_ast := plparse_parser.parse;
-        pete_assert.eq('PackageBody(BlockDeclPart(ProcedureDef(BlockCode(SimpleStatement)),ProcedureDef(BlockCode(SimpleStatement)),FunctionDef(BlockCode(SimpleStatement)),FunctionDef(BlockCode(SimpleStatement)),ProcedureDef(BlockDeclPart(ProcedureDef(BlockCode(SimpleStatement))),BlockCode)))',
-                       l_ast.toString);
+        --
+        -- Expectations
+        ut.expect(l_ast.toString).to_equal('PackageBody(BlockDeclPart(ProcedureDef(BlockCode(SimpleStatement)),ProcedureDef(BlockCode(SimpleStatement)),FunctionDef(BlockCode(SimpleStatement)),FunctionDef(BlockCode(SimpleStatement)),ProcedureDef(BlockDeclPart(ProcedureDef(BlockCode(SimpleStatement))),BlockCode(UnknownStatement))))');
+
     END;
 
     ----------------------------------------------------------------------------
-    PROCEDURE functionDef1(D VARCHAR2) IS
+    PROCEDURE functionDef1 IS
          -- NoFormat Start
         l_sourceLines plparse.source_lines_type := plparse.source_lines_type(
             'FUNCTION fncWithoutParams RETURN PLS_INTEGER IS' || chr(10),
@@ -169,14 +201,16 @@ CREATE OR REPLACE PACKAGE BODY ut_plparse_parser AS
         -- NoFormat End
         l_ast plparse_ast;
     BEGIN
-        pete.set_method_description(D);
+        -- Test
         plparse_parser.initialize(l_sourceLines);
         l_ast := plparse_parser.parse;
-        pete_assert.eq('FunctionDef(BlockCode(SimpleStatement))', l_ast.toString);
+        --
+        -- Expectations
+        ut.expect(l_ast.toString).to_equal('FunctionDef(BlockCode(SimpleStatement))');
     END;
 
     ----------------------------------------------------------------------------
-    PROCEDURE functionDef2(D VARCHAR2) IS
+    PROCEDURE functionDef2 IS
          -- NoFormat Start
         l_sourceLines plparse.source_lines_type := plparse.source_lines_type(
             'FUNCTION fncWithoutParams (p integer) RETURN PLS_INTEGER IS' || chr(10),
@@ -187,55 +221,63 @@ CREATE OR REPLACE PACKAGE BODY ut_plparse_parser AS
         -- NoFormat End
         l_ast plparse_ast;
     BEGIN
-        pete.set_method_description(D);
+        -- Test
         plparse_parser.initialize(l_sourceLines);
         l_ast := plparse_parser.parse;
-        pete_assert.eq('FunctionDef(BlockCode(SimpleStatement))', l_ast.toString);
+        --
+        -- Expectations
+        ut.expect(l_ast.toString).to_equal('FunctionDef(BlockCode(SimpleStatement))');
     END;
 
     ----------------------------------------------------------------------------
-    PROCEDURE parseIfSample(D VARCHAR2) IS
+    PROCEDURE parseIfSample IS
         l_ast plparse_ast;
     BEGIN
-        pete.set_method_description(D);
+        -- Test
         plparse_parser.initialize(get_source_lines(USER, 'FIX_PARSER_IF', 'PROCEDURE'));
         l_ast := plparse_parser.parse;
-        pete_assert.eq('ProcedureDef(BlockCode(Decision(Branch(SimpleStatement)),Decision(Branch(SimpleStatement,SimpleStatement)),Decision(Branch(SimpleStatement),Branch(SimpleStatement)),Decision(Branch(SimpleStatement),Branch(SimpleStatement),Branch(SimpleStatement))))',
-                       l_ast.toString);
+        --
+        -- Expectations
+        ut.expect(l_ast.toString).to_equal('ProcedureDef(BlockCode(Decision(Branch(SimpleStatement)),Decision(Branch(SimpleStatement,SimpleStatement)),Decision(Branch(SimpleStatement),Branch(SimpleStatement)),Decision(Branch(SimpleStatement),Branch(SimpleStatement),Branch(SimpleStatement))))');
     END;
 
     ----------------------------------------------------------------------------
-    PROCEDURE parseDeclWithoutInitSample(D VARCHAR2) IS
+    PROCEDURE parseDeclWithoutInitSample IS
         l_ast plparse_ast;
     BEGIN
-        pete.set_method_description(D);
+        -- Test
         plparse_parser.initialize(get_source_lines(USER, 'FIX_PARSER_DECL_WITHOUT_INIT', 'PROCEDURE'));
         l_ast := plparse_parser.parse;
-        pete_assert.eq('ProcedureDef(BlockDeclPart(OtherDecl,OtherDecl,OtherDecl,OtherDecl,OtherDecl,OtherDecl,OtherDecl,OtherDecl,OtherDecl,OtherDecl,OtherDecl,OtherDecl,OtherDecl),BlockCode(SimpleStatement))',
-                       l_ast.toString);
+        --
+        -- Expectations
+        ut.expect(l_ast.toString).to_equal('ProcedureDef(BlockDeclPart(OtherDecl,OtherDecl,OtherDecl,OtherDecl,OtherDecl,OtherDecl,OtherDecl,OtherDecl,OtherDecl,OtherDecl,OtherDecl,OtherDecl,OtherDecl),BlockCode(SimpleStatement))');
     END;
 
     ----------------------------------------------------------------------------
-    PROCEDURE parseDeclWithInitSample(D VARCHAR2) IS
+    PROCEDURE parseDeclWithInitSample IS
         l_ast plparse_ast;
     BEGIN
-        pete.set_method_description(D);
+        -- Test
         plparse_parser.initialize(get_source_lines(USER, 'FIX_PARSER_DECL_WITH_INIT', 'PROCEDURE'));
         l_ast := plparse_parser.parse;
-        pete_assert.eq('ProcedureDef(BlockDeclPart(ExecutableDecl,ExecutableDecl,ExecutableDecl,ExecutableDecl),BlockCode(SimpleStatement))',
-                       l_ast.toString);
+        --
+        -- Expectations
+        ut.expect(l_ast.toString).to_equal('ProcedureDef(BlockDeclPart(ExecutableDecl,ExecutableDecl,ExecutableDecl,ExecutableDecl),BlockCode(SimpleStatement))');
     END;
 
     ----------------------------------------------------------------------------
-    PROCEDURE parseCaseSample(D VARCHAR2) IS
+    PROCEDURE parseCaseSample IS
         l_ast plparse_ast;
+        l_pom integer;
     BEGIN
-        pete.set_method_description(D);
+        -- Test
         plparse_parser.initialize(get_source_lines(USER, 'FIX_PARSER_CASE', 'PROCEDURE'));
         l_ast := plparse_parser.parse;
-        pete_assert.this(l_ast IS NOT NULL);
-        pete_assert.eq('ProcedureDef(BlockDeclPart(OtherDecl),BlockCode(Decision(Branch(SimpleStatement)),Decision(Branch(SimpleStatement)),<Label>,Decision(Branch(SimpleStatement)),Decision(Branch(SimpleStatement),Branch(SimpleStatement)),Decision(Branch(SimpleStatement))))',
-                       l_ast.toString);
+        --
+        -- Expectations
+        l_pom := case when l_ast is null then null else 1 end;
+        ut.expect(l_pom).to_be_not_null();
+        ut.expect(l_ast.toString).to_equal('ProcedureDef(BlockDeclPart(OtherDecl),BlockCode(Decision(Branch(SimpleStatement)),Decision(Branch(SimpleStatement)),<Label>,Decision(Branch(SimpleStatement)),Decision(Branch(SimpleStatement),Branch(SimpleStatement)),Decision(Branch(SimpleStatement))))');
     END;
 
 END;
