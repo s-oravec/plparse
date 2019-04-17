@@ -1,11 +1,17 @@
 CREATE OR REPLACE PACKAGE ut_plparse_ast_registry AS
+    
+    --%suitepath(plparse)
+    --%suite(plparse_AST_Registry)
 
-    Description CONSTANT pete_types.typ_description := 'plparse_AST_Registry';
-
+    --%beforeeach
     PROCEDURE before_each;
 
-    PROCEDURE registerRegisters(D VARCHAR2 := 'register registers');
-    PROCEDURE unregisterUnregisters(D VARCHAR2 := 'unregister unregisters');
+    --%test(register registers)
+    PROCEDURE registerRegisters;
+
+    --%test(unregister unregisters)
+    --%throws(-1403)
+    PROCEDURE unregisterUnregisters;
 
 END;
 /
@@ -18,53 +24,54 @@ CREATE OR REPLACE PACKAGE BODY ut_plparse_ast_registry AS
     END;
 
     ----------------------------------------------------------------------------  
-    PROCEDURE registerRegisters(D VARCHAR2) IS
+    PROCEDURE registerRegisters IS
         l_ast      plparse_ast;
         l_otherAst plparse_ast;
     BEGIN
-        pete.set_method_description(D);
+        -- Test
         l_ast := plparse_ast(plex_token(plex.tk_Asterix));
-        pete_assert.is_null(l_ast.id_registry);
+        --
+        -- Expectations
+        ut.expect(l_ast.id_registry).to_be_null();
+        --
+        -- Continue Test
         plparse_ast_registry.register(l_ast);
         --
-        pete_assert.eq(plex.tk_Asterix, l_ast.token.tokenType);
-        pete_assert.is_not_null(l_ast.id_registry);
+        -- Expectations
+        ut.expect(l_ast.token.tokenType).to_equal(plex.tk_Asterix);
+        ut.expect(l_ast.id_registry).to_be_not_null();
         --
+        -- Continue Test
         l_otherAst := plparse_ast_registry.get_by_id(l_ast.id_registry);
-        pete_assert.eq(l_ast.token.tokenType, l_otherAst.token.tokenType);
+        --
+        -- Expectations
+        ut.expect(l_ast.token.tokenType).to_equal(l_otherAst.token.tokenType);
     END;
 
     ----------------------------------------------------------------------------  
-    PROCEDURE unregisterUnregisters(D VARCHAR2) IS
+    PROCEDURE unregisterUnregisters IS
         l_ast1   plparse_ast;
         l_id1    INTEGER;
         l_ast2   plparse_ast;
         l_id2    INTEGER;
-        l_thrown BOOLEAN;
+        someAST  plparse_ast;
     BEGIN
-        pete.set_method_description(D);
-        --prepare
-        --register 2 ASTs
+        -- prepare
+        -- register 2 ASTs
         l_ast1 := plparse_ast(plex_token(plex.tk_Asterix));
         plparse_ast_registry.register(l_ast1);
         l_id1  := l_ast1.id_registry;
         l_ast2 := plparse_ast(plex_token(plex.tk_LessThan));
         plparse_ast_registry.register(l_ast2);
         l_id2 := l_ast2.id_registry;
-        --test - unregister 1st
+        -- test - unregister 1st
         plparse_ast_registry.unregister(l_ast1);
-        pete_assert.is_null(l_ast1.id_registry);
-        --assert
-        DECLARE
-            someAST plparse_ast;
-        BEGIN
-            someAST  := plparse_ast_registry.get_by_id(l_id1);
-            l_thrown := FALSE;
-        EXCEPTION
-            WHEN OTHERS THEN
-                l_thrown := TRUE;
-        END;
-        pete_assert.this(l_thrown, 'get by id on unregistered AST should have thrown');
+        --
+        -- Expectations
+        ut.expect(l_ast1.id_registry).to_be_null();
+        -- test assert
+        someAST  := plparse_ast_registry.get_by_id(l_id1);
+        -- get by id on unregistered AST should have thrown
     END;
 
 

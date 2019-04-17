@@ -1,3 +1,5 @@
 oradb_modules/
 .idea/
 *.~*
+/report/test-report-core.xml
+/report/coverage-report-core.html
